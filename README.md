@@ -5,7 +5,7 @@ I was poking around the files of Krzyhau's Speedrun Mod with the intentions of f
 It is currently very unfinished so I'll only be releasing a beta, and I'll make an actual release when I'm happy with my progress.
 
 1. Already have downloaded and installed Krzyhau's Speedrun Mod, for this I recommend making a copy of the files and placing them in a safe space
-2. Download all of the files [CHANGE WHEN I MAKE AN ACTUAL BETA RELEASE LOL]
+2. Download all of the files found in the "Releases" section
 3. place `extras.txt` in `Portal 2 Speedrun Mod/scripts`
 4. place `speedrunmod.nut` in `Portal 2 Speedrun Mod/scripts/vscripts`
 5. place `cubecore.nut` in `Portal 2 Speedrun Mod/scripts/vscripts/modes`
