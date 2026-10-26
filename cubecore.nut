@@ -61,7 +61,7 @@ function CubeCoreLoad(){
     default:
         CreateCubeCore(null,null,null); //setting x,y,z all to null makes cubecore spawn on player
         GrabAndLockCubeFor(2);
-        FixAllFilters();
+        //FixAllFilters();
         OriginToName();
         break;
     }
@@ -72,7 +72,7 @@ CUBECORE_CORE <- null;
 
 cubeTimer <- 0;
 
-function CubeCoreUpdate(){ //use this fun to detect if the cube is dead, since it updates constantly? but how to detect where cube died? maybe keep track of position? thatll be a VERY long function though
+function CubeCoreUpdate(){ //use this func to detect if the cube is dead, since it updates constantly? but how to detect where cube died? maybe keep track of position? thatll be a VERY long function though
     cubeTimer++;
     if(cubeTimer==220){
         CUBECORE_CORE.EmitSound("cubecore.fuckthisgame");
@@ -101,7 +101,7 @@ function FixAllFilters(){ //works
     }
 }
 
-function OriginToName(){ //cant get the name for some reason? only the number and type?
+function OriginToName(){ //cant get the name for some reason? only the number and type? i dont even know what the number means
     if(GetMapName() in FILTER_FIX_LIST){
         local ent = null;
         foreach(i, filter in FILTER_FIX_LIST[GetMapName()]){
@@ -346,10 +346,8 @@ FILTER_FIX_LIST <- {
     ],
     sp_a2_bridge_intro=[
         {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {origin=Vector(-735.963,-160,0)},
         {name="door_52-door_physics_clip",filter="door_52-weighted_cube_filter"},
-        {name="box_dropper_01-cube_dropper_box_reenter_clip"},
-        {name="@exit_elevator_cleanser"},
+        {name="box_dropper_01-cube_dropper_box_reenter_clip"}
     ],
     sp_a1_intro2=[
         {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
@@ -385,8 +383,7 @@ FILTER_FIX_LIST <- {
     sp_a2_laser_vs_turret=[
         {name="ratman_entry_clip"},
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a2_bts4=[
         {origin=Vector(2958,-4928,6716.02)},
@@ -398,9 +395,7 @@ FILTER_FIX_LIST <- {
     ],
     sp_a2_dual_lasers=[
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
-        {origin=Vector(32,64,896)},
-        {name="@exit_elevator_cleanser"},
+        {name="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"}
     ],
     sp_a4_tb_trust_drop=[
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
@@ -416,12 +411,8 @@ FILTER_FIX_LIST <- {
     sp_a2_catapult_intro=[
         {name="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
         {name="simple_physics_prop_clip",filter="simple_physics_prop_filter"},
-        {origin=Vector(-64,-160,0)},
-        {origin=Vector(-64,-160,0)},
-        {origin=Vector(-64,-160,0)},
-        {name="@exit_elevator_cleanser"},
         {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="cube_dropper-cube_dropper_box_reenter_clip"},
+        {name="cube_dropper-cube_dropper_box_reenter_clip"}
     ],
     sp_a2_core=[
         {name="pit_clip",filter="filter_name"},
@@ -432,8 +423,7 @@ FILTER_FIX_LIST <- {
         {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
         {name="cube_dropper_1-cube_dropper_box_reenter_clip"},
-        {name="cube_dropper_2-cube_dropper_box_reenter_clip"},
-        {name="@exit_elevator_cleanser"},
+        {name="cube_dropper_2-cube_dropper_box_reenter_clip"}
     ],
     sp_a4_tb_catch=[
         {name="@destruction_relay"},
@@ -452,8 +442,7 @@ FILTER_FIX_LIST <- {
     sp_a2_laser_stairs=[
         {name="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="cube_dropper_01-cube_dropper_box_reenter_clip"},
-        {name="@exit_elevator_cleanser"},
+        {name="cube_dropper_01-cube_dropper_box_reenter_clip"}
     ],
     sp_a1_intro7=[
         {name="sphere_clip"},
@@ -486,8 +475,7 @@ FILTER_FIX_LIST <- {
     ],
     sp_a2_laser_intro=[
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a4_laser_catapult=[
         {name="func_clip_vphysics_block_cubes_1"},
@@ -497,12 +485,8 @@ FILTER_FIX_LIST <- {
     ],
     sp_a2_turret_intro=[
         {name="fun_nel"},
-        {name="fun_nel"},
-        {name="fun_nel"},
-        {name="fun_nel"},
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a4_finale1=[
         {origin=Vector(-10691.3,-2048,143.63)},
@@ -571,13 +555,11 @@ FILTER_FIX_LIST <- {
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
         {name="reflecto_cube_dropper-cube_dropper_box_reenter_clip"},
         {name="midroom_upper_panel_1-airlock_lower_panel_1_physblocker"},
-        {name="midroom_lower_panel_1-airlock_lower_panel_1_physblocker"},
-        {name="@exit_elevator_cleanser"},
+        {name="midroom_lower_panel_1-airlock_lower_panel_1_physblocker"}
     ],
     sp_a2_laser_over_goo=[
         {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {name="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"}
     ],
     sp_a2_sphere_peek=[
         {name="HACK_clip"},
@@ -585,15 +567,13 @@ FILTER_FIX_LIST <- {
         {name="HACK_clip"},
         {name="HACK_clip"},
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a2_fizzler_intro=[
         {origin=Vector(128,-432,64)},
         {name="cube_dropper-cube_dropper_box_reenter_clip"},
         {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"}
     ],
     sp_a3_jump_intro=[
         {name="AutoInstance1-$cleanser_name"},
@@ -611,10 +591,8 @@ FILTER_FIX_LIST <- {
     ],
     sp_a2_trust_fling=[
         {name="box_collision",filter="cube_filter"},
-        {origin=Vector(-128.46,48,-560)},
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
         {name="door_52-door_physics_clip",filter="door_52-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
     ],
     sp_a2_pit_flings=[
         {name="tilex9_cube_clip",filter="filter_weighted_cube"},
@@ -634,8 +612,7 @@ FILTER_FIX_LIST <- {
     sp_a2_turret_blocker=[
         {name="cheat_protection"},
         {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"}
     ],
     sp_a3_crazy_box=[
         {origin=Vector(1536,-1463.5,96)},
@@ -648,28 +625,16 @@ FILTER_FIX_LIST <- {
     ],
     sp_a2_intro=[
         {name="impact_phys_clip"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {origin=Vector(-2576,448,-10736)},
-        {origin=Vector(-2576,448,-10736)},
-        {origin=Vector(-2576,448,-10736)},
-        {origin=Vector(-2576,448,-10736)},
-        {origin=Vector(-2576,448,-10736)},
-        {origin=Vector(-2576,448,-10736)},
-        {origin=Vector(-2576,448,-10736)},
-        {origin=Vector(-2576,448,-10736)},
-        {origin=Vector(-2576,448,-10736)},
-        {name="@exit_elevator_cleanser"},
+        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"}
     ],
     sp_a2_triple_laser=[
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a2_bridge_the_gap=[
         {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
         {name="cube_dropper-cube_dropper_box_reenter_clip"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"}
     ],
     sp_a4_stop_the_box=[
         {origin=Vector(543,320,544)},
@@ -714,20 +679,17 @@ FILTER_FIX_LIST <- {
     ],
     sp_a2_laser_relays=[
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a2_laser_chaining=[
         {name="floor_arm_collision"},
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a2_pull_the_rug=[
         {name="box_restarter",filter="box1_filter"},
         {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a3_bomb_flings=[
         {origin=Vector(128,-528,688)},
