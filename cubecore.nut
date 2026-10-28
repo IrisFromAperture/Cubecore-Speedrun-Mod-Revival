@@ -32,7 +32,7 @@ function CubeCoreLoad(){
     local playerproxy = Entities.CreateByClassname("logic_playerproxy");
     EntFireByHandle(playerproxy, "AddOutput", "targetname cubecore_playerproxy",0,null,null);
 
-    FixAllFilters();
+    //FixAllFilters();
     //EntFire("@exit_elevator_cleanser", "disable", "", 0.0);
 
     switch(GetMapName()){
@@ -61,8 +61,8 @@ function CubeCoreLoad(){
     default:
         CreateCubeCore(null,null,null); //setting x,y,z all to null makes cubecore spawn on player
         GrabAndLockCubeFor(2);
-        //FixAllFilters();
-        OriginToName();
+        FixAllFilters();
+        //OriginToName();
         break;
     }
     
@@ -85,45 +85,89 @@ function CubeCoreUpdate(){ //use this func to detect if the cube is dead, since 
     }
 }
 
-function FixAllFilters(){ //works
-    if(GetMapName() in FILTER_FIX_LIST){
-        foreach(i, filter in FILTER_FIX_LIST[GetMapName()]){
+function FixAllFilters(delay=0.3){ //new one that should detect vclips and fizzlers with no names that have been put in the filter fix list
+    if(GetMapName() in FILTER_FIX_LIST) {
+        foreach(i, filter in FILTER_FIX_LIST[GetMapName()]) {
             local name = null;
-            if ("name" in filter) {
-                name = filter.name;
-                EntFire(name, "kill", "", 0.0);
-                //SendToConsole("say fucked up vphys clip '"+name+"'");
+            if ("clip" in filter) {
+                name = filter.clip;
+                EntFire(name, "kill", "", delay);
+            } else if ("origin" in filter) {
+                local ent = null;
+                ent = Entities.FindByClassnameNearest("trigger_portal_cleanser", filter.origin, 8);
+                if (ent = null) {
+                    ent = Entities.FindByClassnameNearest("func_clip_vphysics", filter.origin, 8);
+                    EntFireByHandle(ent, "AddOutput", "targetname unnamed-vclip", delay, null, null);
+                    EntFire(unnamed-vclip, "kill", "", delay);
+                } else {
+                    EntFireByHandle(ent, "AddOutput", "targetname unnamed-fizzler", delay, null, null);
+                    EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop unnamed-fizzler:Enable::0:-1",delay);
+                    EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup unnamed-fizzler:Disable::0:-1",delay);
+                }
             } else {
-                SendToConsole("say you fucked up on the filter");
+                SendToConsole("say something other than clip, fizzler, or origin passed through func");
             }
         }
-        
+        FizzlerTrigger(delay);
     }
 }
 
-function OriginToName(){ //cant get the name for some reason? only the number and type? i dont even know what the number means
-    if(GetMapName() in FILTER_FIX_LIST){
-        local ent = null;
-        foreach(i, filter in FILTER_FIX_LIST[GetMapName()]){
-            local name = null;
-            if(!("name" in filter)){
-                local type = null;
-                ent = Entities.FindByClassnameNearest("trigger_portal_cleanser", filter.origin, 8);
-                if(!ent) {
-                    ent = Entities.FindByClassnameNearest("func_clip_vphysics", filter.origin, 8);
-                    type = "physics clip";
-                } else {
-                    type = "fizzler";
-                }
-                if (ent != null) {
-                    local namei = ent.GetName();
-                    SendToConsole("say entity:");
-                    SendToConsole("say "+ent);
-                } else {
-                    SendToConsole("say no entity found");
-                }
+//switch because fizzlers have to be difficult with enabling/disabling and the names not wanting to work, fuck fizzlers too. i understand why this was scrapped originally
+function FizzlerTrigger(delay) {
+
+    EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop @exit_elevator_cleanser:Enable::0:-1",delay);
+    EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup @exit_elevator_cleanser:Disable::0:-1",delay);
+    EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop fizzler:Enable::0:-1",delay);
+    EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup fizzler:Disable::0:-1",delay);
+
+    switch(GetMapName()) {
+        case "sp_a1_intro4":
+            SendToConsole("say got map");
+            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop fizzler_brush:Enable::0:-1",delay);
+            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup fizzler_brush:Disable::0:-1",delay);
+        case "sp_a1_intro6":
+            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop InstanceAuto4-cleanser1-InstanceAuto4-cleanser:Enable::0:-1",delay);
+            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup InstanceAuto4-cleanser1-InstanceAuto4-cleanser:Disable::0:-1",delay);
+        case "sp_a2_bts4":  
+            local ent = Entities.FindByClassnameNearest("trigger_portal_cleanser", Vector(2958,-4928,6716.02), 8);
+            EntFireByHandle(ent, "AddOutput", "targetname InstanceAuto41-$cleanser_name", delay, null, null);
+            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop InstanceAuto31-$cleanser_name:Enable::0:-1",delay);
+            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup InstanceAuto31-$cleanser_name:Disable::0:-1",delay);
+            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop InstanceAuto41-$cleanser_name:Enable::0:-1",delay);
+            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup InstanceAuto41-$cleanser_name:Disable::0:-1",delay);
+        case "sp_a3_jump_intro":
+            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop AutoInstance1-$cleanser_name:Enable::0:-1",delay);
+            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup AutoInstance1-$cleanser_name:Disable::0:-1",delay);
+        case "sp_a3_crazy_box":
+            foreach(i, filter in FILTER_FIX_LIST[GetMapName()]){
+                local ent = Entities.FindByClassnameNearest("trigger_portal_cleanser", filter.origin, 8);
+                EntFireByHandle(ent, "AddOutput", "targetname unnamed-fizzler", delay, null, null);
             }
-        }
+            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop unnamed-fizzler:Enable::0:-1",delay);
+            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup unnamed-fizzler:Disable::0:-1",delay);
+        case "sp_a3_transition01":
+            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop AutoInstance1-$cleanser_name:Enable::0:-1",delay);
+            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup AutoInstance1-$cleanser_name:Disable::0:-1",delay);
+        case "sp_a3_end":
+            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop AutoInstance1-$cleanser_name:Enable::0:-1",delay);
+            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup AutoInstance1-$cleanser_name:Disable::0:-1",delay);
+        case "sp_a4_speed_tb_catch":
+            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop fizzler_moving:Enable::0:-1",delay);
+            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup fizzler_moving:Disable::0:-1",delay);
+        case "sp_a4_jump_polarity":
+            foreach(i, filter in FILTER_FIX_LIST[GetMapName()]){
+                if("fizzler" in filter) {
+                    local ent = Entities.FindByClassnameNearest("trigger_portal_cleanser", filter.origin, 8);
+                    EntFireByHandle(ent, "AddOutput", "targetname unnamed-fizzler", delay, null, null);
+                } 
+            }
+            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop unnamed-fizzler:Enable::0:-1",delay);
+            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup unnamed-fizzler:Disable::0:-1",delay);
+        case "sp_a4_finale3":
+            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop AutoInstance1-@exit_elevator_cleanser:Enable::0:-1",0);
+            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup AutoInstance1-@exit_elevator_cleanser:Disable::0:-1",0);
+            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop AutoInstance1-@exit_elevator_cleanser1:Enable::0:-1",0);
+            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup AutoInstance1-@exit_elevator_cleanser1:Disable::0:-1",0);
     }
 }
 
@@ -316,7 +360,7 @@ function PostCreateCubeCore(x,y,z){ //oh, all the important stuff happens here
     EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop cubecore_fixed_end_trigger:Disable::0:-1",0.5);
     EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup cubecore_fixed_end_trigger:Enable::0:-1",0.5);
 
-    FizzlerTrigger();
+    //FizzlerTrigger();
 }
 
 //maybe repurpose this as a cube-respawning dropper? or plop a bunch of droppers in convenient spots, rememer where the cube last was, then if it dies choose the closest dropper and respawn?
@@ -338,39 +382,40 @@ function CreateEndDropper(pos, angles){
 
 FILTER_FIX_LIST <- {
     sp_a4_tb_polarity=[
-        {name="box_vclip"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clip="box_vclip"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
         {origin=Vector(444,672,320)},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"}
     ],
     sp_a2_bridge_intro=[
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="door_52-door_physics_clip",filter="door_52-weighted_cube_filter"},
-        {name="box_dropper_01-cube_dropper_box_reenter_clip"}
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {origin=Vector(-735.963,-160,0)},
+        {clip="door_52-door_physics_clip",filter="door_52-weighted_cube_filter"},
+        {clip="box_dropper_01-cube_dropper_box_reenter_clip"}
     ],
     sp_a1_intro2=[
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="@entry_door-door_physics_clip",filter="@entry_door-weighted_cube_filter"}
+        {origin=Vector(8,0,13)},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clip="@entry_door-door_physics_clip",filter="@entry_door-weighted_cube_filter"}
     ],
     sp_a1_intro3=[
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="door_3-door_physics_clip",filter="door_3-weighted_cube_filter"}
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="door_3-door_physics_clip",filter="door_3-weighted_cube_filter"}
     ],
     sp_a4_jump_polarity=[
-        {name="fizzler1"},
-        {name="fling_cleanser"},
-        {name="InstanceAuto5-$cleanser_name"},
-        {name="InstanceAuto70-$cleanser_name"},
-        {name="@entry_door-door_physics_clip",filter="@entry_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {fizzler="fizzler1"},
+        {fizzler="fling_cleanser"},
+        {fizzler="InstanceAuto5-$cleanser_name"},
+        {fizzler="InstanceAuto70-$cleanser_name"},
+        {clip="@entry_door-door_physics_clip",filter="@entry_door-weighted_cube_filter"}
     ],
     sp_a1_intro6=[
-        {name="room_1_exit_door-door_physics_clip",filter="room_1_exit_door-weighted_cube_filter"},
-        {name="room_2_entry_door-door_physics_clip",filter="room_2_entry_door-weighted_cube_filter"},
-        {name="cube_dropper-cube_dropper_box_reenter_clip"},
-        {name="room_2_exit_door-door_physics_clip",filter="room_2_exit_door-weighted_cube_filter"},
-        {name="room_1_entry_door-door_physics_clip",filter="room_1_entry_door-weighted_cube_filter"}
+        {origin=Vector(800,0,128)},
+        {clip="room_1_exit_door-door_physics_clip",filter="room_1_exit_door-weighted_cube_filter"},
+        {clip="room_2_entry_door-door_physics_clip",filter="room_2_entry_door-weighted_cube_filter"},
+        {clip="cube_dropper-cube_dropper_box_reenter_clip"},
+        {clip="room_2_exit_door-door_physics_clip",filter="room_2_exit_door-weighted_cube_filter"},
+        {clip="room_1_entry_door-door_physics_clip",filter="room_1_entry_door-weighted_cube_filter"}
     ],
     sp_a4_finale2=[
         {origin=Vector(-3151.99,-1640,-256)},
@@ -378,241 +423,203 @@ FILTER_FIX_LIST <- {
         {origin=Vector(704,-160,64)},
         {origin=Vector(-758,-1216,-448)},
         {origin=Vector(801,704,-135.99)},
-        {origin=Vector(704,-160,-64)},
+        {origin=Vector(704,-160,-64)}
     ],
     sp_a2_laser_vs_turret=[
-        {name="ratman_entry_clip"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
+        {clip="ratman_entry_clip"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a2_bts4=[
         {origin=Vector(2958,-4928,6716.02)},
         {origin=Vector(928,-6912,6336)},
         {origin=Vector(928,-6912,6336)},
         {origin=Vector(928,-6912,6336)},
-        {origin=Vector(928,-6912,6336)},
-        {name="InstanceAuto31-$cleanser_name"},
+        {origin=Vector(928,-6912,6336)}
     ],
     sp_a2_dual_lasers=[
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"}
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
+        {origin=Vector(32,64,896)}
     ],
     sp_a4_tb_trust_drop=[
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a4_tb_intro=[
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {origin=Vector(1664,512,-508)},
-        {name="@exit_elevator_cleanser"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {origin=Vector(1664,512,-508)}
     ],
     sp_a2_catapult_intro=[
-        {name="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
-        {name="simple_physics_prop_clip",filter="simple_physics_prop_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="cube_dropper-cube_dropper_box_reenter_clip"}
+        {clip="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
+        {clip="simple_physics_prop_clip",filter="simple_physics_prop_filter"},
+        {origin=Vector(-64,-160,0)},
+        {origin=Vector(-64,-160,0)},
+        {origin=Vector(-64,-160,0)},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clip="cube_dropper-cube_dropper_box_reenter_clip"}
     ],
     sp_a2_core=[
-        {name="pit_clip",filter="filter_name"},
-        {name="rv_trap_portal_surf_cleanser"},
-        {origin=Vector(-1840,0,-64)},
+        {clip="pit_clip",filter="filter_name"},
+        {clip="rv_trap_portal_surf_cleanser"},
+        {origin=Vector(-1840,0,-64)}
     ],
     sp_a2_column_blocker=[
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="cube_dropper_1-cube_dropper_box_reenter_clip"},
-        {name="cube_dropper_2-cube_dropper_box_reenter_clip"}
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="cube_dropper_1-cube_dropper_box_reenter_clip"},
+        {clip="cube_dropper_2-cube_dropper_box_reenter_clip"}
     ],
     sp_a4_tb_catch=[
-        {name="@destruction_relay"},
-        {name="@destruction_relay"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {origin=Vector(508,-480,608)},
-        {name="@exit_elevator_cleanser"},
+        {clip="@destruction_relay"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {origin=Vector(508,-480,608)}
     ],
     sp_a1_intro5=[
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
-        {name="cube_dropper_2-cube_dropper_box_reenter_clip"},
-        {name="cube_dropper_1-cube_dropper_box_reenter_clip"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
+        {clip="cube_dropper_2-cube_dropper_box_reenter_clip"},
+        {clip="cube_dropper_1-cube_dropper_box_reenter_clip"}
     ],
     sp_a2_laser_stairs=[
-        {name="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="cube_dropper_01-cube_dropper_box_reenter_clip"}
+        {clip="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="cube_dropper_01-cube_dropper_box_reenter_clip"}
     ],
     sp_a1_intro7=[
-        {name="sphere_clip"},
-        {name="sphere_clip"},
-        {name="portal_blocker"},
-        {name="sphere_clip"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="InstanceAuto22-sphere_clip"},
+        {clip="sphere_clip"},
+        {clip="portal_blocker"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="InstanceAuto22-sphere_clip"}
     ],
     sp_a4_speed_tb_catch=[
-        {name="fizzler_moving"},
-        {name="fizzler_moving"},
-        {name="box_stoppers"},
-        {name="box_stoppers"},
-        {name="fizzler_moving"},
-        {name="exit_door-door_physics_clip",filter="exit_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {clip="box_stoppers"},
+        {clip="exit_door-door_physics_clip",filter="exit_door-weighted_cube_filter"}
     ],
     sp_a4_laser_platform=[
-        {name="box_dropper-cube_dropper_box_reenter_clip"},
-        {name="entrance_door-door_physics_clip",filter="entrance_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {clip="box_dropper-cube_dropper_box_reenter_clip"},
+        {clip="entrance_door-door_physics_clip",filter="entrance_door-weighted_cube_filter"}
     ],
     sp_a3_03=[
-        {name="silent_fizzler"},
-        {origin=Vector(-3633.11,1345.33,-2480)},
+        {origin=Vector(-3633.11,1345.33,-2480)}
     ],
     sp_a4_finale4=[
-        {origin=Vector(0,-140,-1348)},
+        {origin=Vector(0,-140,-1348)}
     ],
     sp_a2_laser_intro=[
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a4_laser_catapult=[
-        {name="func_clip_vphysics_block_cubes_1"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="@entry_door-door_physics_clip",filter="@entry_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {clip="func_clip_vphysics_block_cubes_1"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clip="@entry_door-door_physics_clip",filter="@entry_door-weighted_cube_filter"}
     ],
     sp_a2_turret_intro=[
-        {name="fun_nel"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a4_finale1=[
         {origin=Vector(-10691.3,-2048,143.63)},
         {origin=Vector(-12832,-2792.1,-108)},
-        {name="entrance_door-door_physics_clip",filter="entrance_door-weighted_cube_filter"},
+        {clip="entrance_door-door_physics_clip",filter="entrance_door-weighted_cube_filter"},
     ],
     sp_a4_intro=[
-        {name="@exit_elevator_cleanser"},
-        {name="@exit_elevator_cleanser"},
-        {name="button_box_brush",filter="cube_bot_filter"},
-        {name="@exit_elevator_cleanser"},
-        {name="@exit_door1-door_physics_clip",filter="@exit_door1-weighted_cube_filter"},
-        {name="@entrance_door1-door_physics_clip",filter="@entrance_door1-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door2-door_physics_clip",filter="@exit_door2-weighted_cube_filter"},
-        {name="@entrance_door2-door_physics_clip",filter="@entrance_door2-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {clip="button_box_brush",filter="cube_bot_filter"},
+        {clip="@exit_door1-door_physics_clip",filter="@exit_door1-weighted_cube_filter"},
+        {clip="@entrance_door1-door_physics_clip",filter="@entrance_door1-weighted_cube_filter"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="@exit_door2-door_physics_clip",filter="@exit_door2-weighted_cube_filter"},
+        {clip="@entrance_door2-door_physics_clip",filter="@entrance_door2-weighted_cube_filter"}
     ],
     sp_a4_finale3=[
-        {name="AutoInstance1-@exit_elevator_cleanser"},
-        {name="AutoInstance1-@exit_elevator_cleanser1"},
-        {name="@exit_elevator_cleanser"},
-        {origin=Vector(0,0,0)},
+        {origin=Vector(0,0,0)}
     ],
     sp_a4_tb_wall_button=[
-        {name="pre_move_cleanser"},
-        {name="pre_move_cleanser"},
-        {name="pre_move_cleanser"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {clip="pre_move_cleanser"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a1_intro4=[
-        {name="box_dropper_phys_clip"},
-        {name="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
-        {name="door_2-door_physics_clip",filter="door_2-weighted_cube_filter"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="just_enough_door_for_the_job-door_physics_clip",filter="just_enough_door_for_the_job-weighted_cube_filter"},
-        {name="box_dropper-cube_dropper_box_reenter_clip"},
+        {clip="box_dropper_phys_clip"},
+        {clip="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
+        {clip="door_2-door_physics_clip",filter="door_2-weighted_cube_filter"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="just_enough_door_for_the_job-door_physics_clip",filter="just_enough_door_for_the_job-weighted_cube_filter"},
+        {clip="box_dropper-cube_dropper_box_reenter_clip"}
     ],
     sp_a3_transition01=[
-        {name="AutoInstance1-$cleanser_name"},
-        {origin=Vector(-2113.33,-128.11,-4096)},
+        {origin=Vector(-2113.33,-128.11,-4096)}
     ],
     sp_a3_speed_ramp=[
         {origin=Vector(-1344.11,-251.67,448.25)},
         {origin=Vector(-1184.5,384,448)},
-        {origin=Vector(1166.67,-640.11,448)},
+        {origin=Vector(1166.67,-640.11,448)}
     ],
     sp_a3_speed_flings=[
-        {origin=Vector(465.33,1152.11,96)},
+        {origin=Vector(465.33,1152.11,96)}
     ],
     sp_a2_ricochet=[
-        {name="cube_safety_clip_brush"},
-        {name="cube_clip_brushes"},
-        {name="cube_clip_brushes"},
-        {name="upper_gate_clip_brush"},
-        {name="lower_gate_clip_brush"},
-        {name="wall_repair_clip_brush"},
-        {name="cube_clip_brushes"},
-        {name="cube_clip_brushes"},
-        {name="midroom_upper_panel_1-airlock_lower_panel_1_physblocker"},
-        {name="midroom_lower_panel_1-airlock_lower_panel_1_physblocker"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="reflecto_cube_dropper-cube_dropper_box_reenter_clip"},
-        {name="midroom_upper_panel_1-airlock_lower_panel_1_physblocker"},
-        {name="midroom_lower_panel_1-airlock_lower_panel_1_physblocker"}
+        {clip="cube_safety_clip_brush"},
+        {clip="cube_clip_brushes"},
+        {clip="cube_clip_brushes"},
+        {clip="upper_gate_clip_brush"},
+        {clip="lower_gate_clip_brush"},
+        {clip="wall_repair_clip_brush"},
+        {clip="cube_clip_brushes"},
+        {clip="midroom_upper_panel_1-airlock_lower_panel_1_physblocker"},
+        {clip="midroom_lower_panel_1-airlock_lower_panel_1_physblocker"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="reflecto_cube_dropper-cube_dropper_box_reenter_clip"},
+        {clip="midroom_upper_panel_1-airlock_lower_panel_1_physblocker"},
+        {clip="midroom_lower_panel_1-airlock_lower_panel_1_physblocker"}
     ],
     sp_a2_laser_over_goo=[
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"}
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clip="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"}
     ],
     sp_a2_sphere_peek=[
-        {name="HACK_clip"},
-        {name="HACK_clip"},
-        {name="HACK_clip"},
-        {name="HACK_clip"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
+        {clip="HACK_clip"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a2_fizzler_intro=[
         {origin=Vector(128,-432,64)},
-        {name="cube_dropper-cube_dropper_box_reenter_clip"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"}
+        {clip="cube_dropper-cube_dropper_box_reenter_clip"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"}
     ],
     sp_a3_jump_intro=[
-        {name="AutoInstance1-$cleanser_name"},
-        {name="AutoInstance1-$cleanser_name"},
-        {name="AutoInstance1-$cleanser_name"},
-        {name="AutoInstance1-$cleanser_name"},
-        {name="room_2_cube_dropper_1_physics_clip"},
+        {clip="room_2_cube_dropper_1_physics_clip"},
         {origin=Vector(-1264,1152,1376)},
         {origin=Vector(-1264,1152,1248)},
-        {origin=Vector(-737.33,2079.89,1572)},
-    ],
-    sp_a3_end=[
-        {name="AutoInstance1-$cleanser_name"},
-        {name="@exit_elevator_cleanser"},
+        {origin=Vector(-737.33,2079.89,1572)}
     ],
     sp_a2_trust_fling=[
-        {name="box_collision",filter="cube_filter"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="door_52-door_physics_clip",filter="door_52-weighted_cube_filter"},
+        {clip="box_collision",filter="cube_filter"},
+        {origin=Vector(-128.46,48,-560)},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="door_52-door_physics_clip",filter="door_52-weighted_cube_filter"}
     ],
     sp_a2_pit_flings=[
-        {name="tilex9_cube_clip",filter="filter_weighted_cube"},
-        {name="walltunnel_1_Cover_clip"},
-        {name="walltunnel_1_Cover_clip"},
-        {name="cube_elevator_clip"},
-        {name="physobject_floor_clip",filter="filter_weighted_cube"},
-        {name="walltunnel_1_Cover_clip"},
-        {name="walltunnel_1_Cover_clip"},
-        {name="ramp_cube_clip",filter="filter_weighted_cube"},
-        {name="box_pre_blocker"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="room_2_exit_door-door_physics_clip",filter="room_2_exit_door-weighted_cube_filter"},
-        {name="cube_dropper-cube_dropper_box_reenter_clip"},
-        {name="@exit_elevator_cleanser"},
+        {clip="tilex9_cube_clip",filter="filter_weighted_cube"},
+        {clip="cube_elevator_clip"},
+        {clip="physobject_floor_clip",filter="filter_weighted_cube"},
+        {clip="walltunnel_1_Cover_clip"},
+        {clip="ramp_cube_clip",filter="filter_weighted_cube"},
+        {clip="box_pre_blocker"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="room_2_exit_door-door_physics_clip",filter="room_2_exit_door-weighted_cube_filter"},
+        {clip="cube_dropper-cube_dropper_box_reenter_clip"}
     ],
     sp_a2_turret_blocker=[
-        {name="cheat_protection"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"}
+        {clip="cheat_protection"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"}
     ],
     sp_a3_crazy_box=[
         {origin=Vector(1536,-1463.5,96)},
@@ -621,20 +628,21 @@ FILTER_FIX_LIST <- {
         {origin=Vector(1536,-1463.5,176)},
         {origin=Vector(2239.89,-779.67,64.25)},
         {origin=Vector(640.11,110.67,1984)},
-        {origin=Vector(2239.89,-779.67,-63.75)},
+        {origin=Vector(2239.89,-779.67,-63.75)}
     ],
     sp_a2_intro=[
-        {name="impact_phys_clip"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"}
+        {clip="impact_phys_clip"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {origin=Vector(-2576,448,-10736)}
     ],
     sp_a2_triple_laser=[
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a2_bridge_the_gap=[
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="cube_dropper-cube_dropper_box_reenter_clip"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"}
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clip="cube_dropper-cube_dropper_box_reenter_clip"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"}
     ],
     sp_a4_stop_the_box=[
         {origin=Vector(543,320,544)},
@@ -642,32 +650,29 @@ FILTER_FIX_LIST <- {
         {origin=Vector(543,320,928)},
         {origin=Vector(543,320,1056)},
         {origin=Vector(543,320,672)},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_elevator_cleanser"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"}
     ],
     sp_a2_bts1=[
-        {name="jailbreak_chamber_unlit-portal_fizzler_1"},
-        {name="jailbreak_chamber_unlit-cube_blocker_brush",filter="jailbreak_chamber_unlit-cube_filter"},
-        {name="jailbreak_chamber_unlit-cube_blocker_brush",filter="jailbreak_chamber_unlit-cube_filter"},
-        {name="jailbreak_chamber_unlit-cube_blocker_brush",filter="jailbreak_chamber_unlit-cube_filter"},
-        {name="jailbreak_chamber_unlit-cube_blocker_brush",filter="jailbreak_chamber_unlit-cube_filter"},
-        {name="jailbreak_chamber_unlit-portal_fizzler_2"},
-        {name="jailbreak_chamber_lit-cube_blocker_brush",filter="jailbreak_chamber_lit-cube_filter"},
-        {name="jailbreak_chamber_lit-cube_blocker_brush",filter="jailbreak_chamber_lit-cube_filter"},
-        {name="jailbreak_chamber_lit-cube_blocker_brush",filter="jailbreak_chamber_lit-cube_filter"},
-        {name="jailbreak_chamber_lit-cube_blocker_brush",filter="jailbreak_chamber_lit-cube_filter"},
-        {name="jailbreak_chamber_lit-power_loss_portal_fizzle"},
-        {name="chamber_door-door_physics_clip",filter="chamber_door-weighted_cube_filter"},
-        {name="pre_solved_chamber-box_dissolver"},
-        {name="pre_solved_chamber-door_1-door_physics_clip",filter="pre_solved_chamber-door_1-weighted_cube_filter"},
-        {name="pre_solved_chamber-box_dropper_01-cube_dropper_box_reenter_clip"},
+        {clip="jailbreak_chamber_unlit-portal_fizzler_1"},
+        {clip="jailbreak_chamber_unlit-cube_blocker_brush",filter="jailbreak_chamber_unlit-cube_filter"},
+        {clip="jailbreak_chamber_unlit-portal_fizzler_2"},
+        {clip="jailbreak_chamber_lit-cube_blocker_brush",filter="jailbreak_chamber_lit-cube_filter"},
+        {clip="jailbreak_chamber_lit-power_loss_portal_fizzle"},
+        {clip="chamber_door-door_physics_clip",filter="chamber_door-weighted_cube_filter"},
+        {clip="pre_solved_chamber-box_dissolver"},
+        {clip="pre_solved_chamber-door_1-door_physics_clip",filter="pre_solved_chamber-door_1-weighted_cube_filter"},
+        {clip="pre_solved_chamber-box_dropper_01-cube_dropper_box_reenter_clip"}
     ],
     sp_a1_intro1=[
-        {name="exit_door_cube_clip",filter="cube_filter"},
-        {name="cube_clip"},
-        {name="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
+        {clip="exit_door_cube_clip",filter="cube_filter"},
+        {origin=Vector(-1232,4306,2632)},
+        {origin=Vector(-1232,4494,2632)},
+        {origin=Vector(-1138,4400,2632)},
+        {origin=Vector(-1326,4400,2632)},
+        {clip="cube_clip"},
+        {clip="door_1-door_physics_clip",filter="door_1-weighted_cube_filter"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a3_portal_intro=[
         {origin=Vector(256,-992,-1168)},
@@ -675,45 +680,30 @@ FILTER_FIX_LIST <- {
         {origin=Vector(2288.33,-95.89,607.717)},
         {origin=Vector(2407.67,-1120.11,-2879.75)},
         {origin=Vector(2432.11,1203.67,-1983.75)},
-        {origin=Vector(863.89,1584.33,-1631.75)},
+        {origin=Vector(863.89,1584.33,-1631.75)}
     ],
     sp_a2_laser_relays=[
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a2_laser_chaining=[
-        {name="floor_arm_collision"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
+        {clip="floor_arm_collision"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a2_pull_the_rug=[
-        {name="box_restarter",filter="box1_filter"},
-        {name="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {name="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
+        {clip="box_restarter",filter="box1_filter"},
+        {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
     ],
     sp_a3_bomb_flings=[
         {origin=Vector(128,-528,688)},
         {origin=Vector(128,-528,549.5)},
         {origin=Vector(128,-528,826.5)},
-        {origin=Vector(-256.11,1633.33,640)},
-    ],
+        {origin=Vector(-256.11,1633.33,640)}
+    ]
 }
 
-//switch because fizzlers have to be difficult with enabling/disabling and the names not wanting to work, fuck fizzlers too. i understand why this was scrapped originally
-function FizzlerTrigger() {
-
-    EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop @exit_elevator_cleanser:Enable::0:-1",0.5);
-    EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup @exit_elevator_cleanser:Disable::0:-1",0.5);
-
-    switch(GetMapName()) {
-        case "sp_a1_intro4":
-            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop fizzler_brush:Enable::0:-1",0);
-            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup fizzler_brush:Disable::0:-1",0);
-        case "sp_a1_intro6":
-            EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop InstanceAuto4-cleanser1-InstanceAuto4-cleanser:Enable::0:-1",0);
-            EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup InstanceAuto4-cleanser1-InstanceAuto4-cleanser:Disable::0:-1",0);
-    }
-}
 
 //im scared im gonna have to add another switch/case func that decides where to spawn the cube if it dies per level
 //if i do, i can have a condition/position combo, where if when the cube dies condition A is met, it goes to dropper A, otherwise it goes to dropper B.
