@@ -33,7 +33,6 @@ function CubeCoreLoad(){
     EntFireByHandle(playerproxy, "AddOutput", "targetname cubecore_playerproxy",0,null,null);
 
     //FixAllFilters();
-    //EntFire("@exit_elevator_cleanser", "disable", "", 0.0);
 
     switch(GetMapName()){
     case "sp_a1_intro1":
@@ -58,11 +57,30 @@ function CubeCoreLoad(){
         FixAllFilters(cubeSpawnDelay+0.5);
 
         break
+    case "sp_a3_jump_intro":
+        //something kills the cube upon normal level load, so special script to spawn the cube above that trigger
+        FixAllFilters();
+        SendToConsole("setang -67 -90");
+        CreateCubeCore(null,null,null);
+        GrabAndLockCubeFor(2,0.1); //grab delay because theres a low chance for the player to drop the cube and regrab before they get to the first fizzler
+        DelayToConsole("setang 0 -90",0.57); //0.57 determined to be best timimg through testing
+        break;
+    case "sp_a3_crazy_box":
+        FixAllFilters();
+        SendToConsole("setang -67 -90");
+        CreateCubeCore(null,null,null);
+        GrabAndLockCubeFor(2,0.2);
+        DelayToConsole("setang 0 -90",0.57);
+        break;
+    case "sp_a3_portal_intro":
+        CreateCubeCore(null,null,null);
+        GrabAndLockCubeFor(2,0.1); //delay required for the same reason as jump intro
+        FixAllFilters();
+        break;
     default:
         CreateCubeCore(null,null,null); //setting x,y,z all to null makes cubecore spawn on player
         GrabAndLockCubeFor(2);
         FixAllFilters();
-        //OriginToName();
         break;
     }
     
@@ -85,27 +103,48 @@ function CubeCoreUpdate(){ //use this func to detect if the cube is dead, since 
     }
 }
 
+function DelayToConsole(input,delay) { //function to delay sending a message to the console because i didnt wanna have to type out "EntFire("player", "RunScriptCode", "SendToConsole("+message+")", delay, null);" every time i wanted to send a delayed message
+    EntFire("player", "RunScriptCode", "SendToConsole("+"\""+input+"\""+")", delay, null); //ignore the absolute mess of quotation marks, it works so im not touching it. its like that so that i only have to type the message in parenthases when calling the function.
+}
+
 function FixAllFilters(delay=0.3){ //new one that should detect vclips and fizzlers with no names that have been put in the filter fix list
     if(GetMapName() in FILTER_FIX_LIST) {
+//        SendToConsole("say found map");
         foreach(i, filter in FILTER_FIX_LIST[GetMapName()]) {
-            local name = null;
+//            SendToConsole("say found filter");
+            local ent = null;
             if ("clip" in filter) {
-                name = filter.clip;
-                EntFire(name, "kill", "", delay);
+//                SendToConsole("say killing vclip");
+                local name = filter.clip;
+                EntFire(name, "kill", "", 0);
             } else if ("origin" in filter) {
-                local ent = null;
+//                SendToConsole("say found unspecified origin");
                 ent = Entities.FindByClassnameNearest("trigger_portal_cleanser", filter.origin, 8);
                 if (ent = null) {
                     ent = Entities.FindByClassnameNearest("func_clip_vphysics", filter.origin, 8);
-                    EntFireByHandle(ent, "AddOutput", "targetname unnamed-vclip", delay, null, null);
-                    EntFire(unnamed-vclip, "kill", "", delay);
+//                    SendToConsole("say unspecified origin is a vclip");
+                    EntFireByHandle(ent, "AddOutput", "targetname unnamed-vclip", 0, null, null);
+                    EntFire("unnamed-vclip", "kill", "", 0);
                 } else {
+//                    SendToConsole("say unspecified origin is a fizzler");
                     EntFireByHandle(ent, "AddOutput", "targetname unnamed-fizzler", delay, null, null);
                     EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop unnamed-fizzler:Enable::0:-1",delay);
                     EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup unnamed-fizzler:Disable::0:-1",delay);
                 }
+            } else if ("clipOrigin" in filter) {
+//                SendToConsole("say found clip origin");
+                ent = Entities.FindByClassnameNearest("func_clip_vphysics", filter.clipOrigin, 100);
+//                SendToConsole("say found: "+ent);
+                EntFireByHandle(ent, "AddOutput", "targetname unnamed-vclip", 0, null, null);
+                EntFire("unnamed-vclip", "kill", "", 0);
+            } else if ("fizzlerOrigin" in filter) {
+//              SendToConsole("say found fizzler origin");
+                ent = Entities.FindByClassnameNearest("trigger_portal_cleanser", filter.fizzlerOrigin, 100);
+                EntFireByHandle(ent, "AddOutput", "targetname unnamed-fizzler", delay, null, null);
+                EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop unnamed-fizzler:Enable::0:-1",delay);
+                EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup unnamed-fizzler:Disable::0:-1",delay);
             } else {
-                SendToConsole("say something other than clip, fizzler, or origin passed through func");
+                SendToConsole("say something other than clip, fizzler, or an origin passed through func, or you fucked up");
             }
         }
         FizzlerTrigger(delay);
@@ -117,8 +156,8 @@ function FizzlerTrigger(delay) {
 
     EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop @exit_elevator_cleanser:Enable::0:-1",delay);
     EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup @exit_elevator_cleanser:Disable::0:-1",delay);
-    EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop fizzler:Enable::0:-1",delay);
-    EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup fizzler:Disable::0:-1",delay);
+    EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop trigger_portal_cleanser:Enable::0:-1",delay);
+    EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup trigger_portal_cleanser:Disable::0:-1",delay);
 
     switch(GetMapName()) {
         case "sp_a1_intro4":
@@ -128,6 +167,8 @@ function FizzlerTrigger(delay) {
         case "sp_a1_intro6":
             EntFire("cubecore_cube", "AddOutput", "OnPhysGunDrop InstanceAuto4-cleanser1-InstanceAuto4-cleanser:Enable::0:-1",delay);
             EntFire("cubecore_cube", "AddOutput", "OnPlayerPickup InstanceAuto4-cleanser1-InstanceAuto4-cleanser:Disable::0:-1",delay);
+        //case "sp_a2_pull_the_rug":
+            //EntFire("laser_cube_wall_mixup_start_cube", "AddOutput", "OnPlayerPickup @exit_door-door_physics_clip:kill::0:-1",delay);
         case "sp_a2_bts4":  
             local ent = Entities.FindByClassnameNearest("trigger_portal_cleanser", Vector(2958,-4928,6716.02), 8);
             EntFireByHandle(ent, "AddOutput", "targetname InstanceAuto41-$cleanser_name", delay, null, null);
@@ -246,15 +287,15 @@ function CreateTriggerCubeHoldLockOrSomething(x,y,z,startLocked){ //w function n
     EntFireByHandle(endTrigger, "AddOutput", "OnStartTouch cubecore_playerproxy:SetDropEnabled:0:0:-1",0,null,null);
 }
 
-function GrabAndLockCubeFor(waitTime){ //also good function, only had to tweak timing to get it to work
+function GrabAndLockCubeFor(waitTime, delay=0){ //also good function, only had to tweak timing to get it to work
     //SendToConsole("say tryig grab in " seconds");
-    EntFire("cubecore_playerproxy", "ForceVMGrabController", "", 0);
-    EntFire("cubecore_playerproxy", "SetDropEnabled", "0", 0);
+    EntFire("cubecore_playerproxy", "ForceVMGrabController", "", delay);
+    EntFire("cubecore_playerproxy", "SetDropEnabled", "0", delay);
 
-    EntFire("cubecore_cube", "Use", "", 0.25, GetPlayer()); //0.25s delay works best from testing
+    EntFire("cubecore_cube", "Use", "", 0.25+delay, GetPlayer()); //0.25s delay works best from testing
 
-    EntFire("cubecore_playerproxy", "ResetGrabControllerBehavior", "", waitTime);
-    EntFire("cubecore_playerproxy", "SetDropEnabled", "1", waitTime);
+    EntFire("cubecore_playerproxy", "ResetGrabControllerBehavior", "", waitTime+delay);
+    EntFire("cubecore_playerproxy", "SetDropEnabled", "1", waitTime+delay);
 }
 
 
@@ -280,12 +321,12 @@ function CreateCubeDropper(x,y,z,rot){
     dropperBlack.SetModel("models/props_underground/underground_boxdropper.mdl");
 }
 
-function CreateCubeCore(x,y,z, delay=0){ //yippee! spawning the cube in is so easy!
+function CreateCubeCore(x,y,z,delay=0,dist=15){ //yippee! spawning the cube in is so easy!
     //For some reason making functional cubes or cores with script functions is nearly impossible.
     //spawning the cube using commands. it always has targetname "cube".
     //needs to wait 1 tick before trying to modify it.
-    SendToConsole("ent_create_portal_reflector_cube")
-    SendToConsole("ent_create npc_personality_core")
+    DelayToConsole("ent_create_portal_reflector_cube",delay);
+    DelayToConsole("ent_create npc_personality_core",delay);
     //SendToConsole("say xyz is x= "+x+", y= "+y+", z= "+z);
     //SendToConsole("say player angles are: "+player.GetAngles());
     //SendToConsole("say maybe player x is: "+player.GetOrigin().x);
@@ -293,16 +334,17 @@ function CreateCubeCore(x,y,z, delay=0){ //yippee! spawning the cube in is so ea
     if (x==null || y==null || z==null) {
         local pi = 3.14159265358; //mm, pie
         local rad = pi/180;
-        local offsetx = 15*cos(rad*player.GetAngles().y); //offset the cube 10 units in the direction the player is looking
-        local offsety = 15*sin(rad*player.GetAngles().y); //offset the cube 10 units in the direction the player is looking
+        local offsetx = dist*cos(rad*player.GetAngles().y)*cos(rad*player.GetAngles().x); //offset the cube [dist] units in the direction the player is looking
+        local offsety = dist*sin(rad*player.GetAngles().y)*cos(rad*player.GetAngles().x); //offset the cube [dist] units in the direction the player is looking
+        local offsetz = dist*sin(rad*player.GetAngles().x); //offset the cube [dist] units in the direction the player is looking
         x = player.GetOrigin().x+offsetx;
         y = player.GetOrigin().y+offsety;
-        z = player.GetOrigin().z+30;
+        z = player.GetOrigin().z+30-offsetz;
     }
-    EntFire(self.GetName(), "RunScriptCode", "PostCreateCubeCore("+x+","+y+","+z+")", 0.2+delay);
+    EntFire(self.GetName(), "RunScriptCode", "PostCreateCubeCore("+x+","+y+","+z+","+dist+")", 0.2+delay);
 }
 
-function PostCreateCubeCore(x,y,z){ //oh, all the important stuff happens here
+function PostCreateCubeCore(x,y,z,dist){ //oh, all the important stuff happens here
     local cubeEnt = Entities.FindByName(null,"cube");
     EntFireByHandle(cubeEnt, "AddOutput", "targetname cubecore_cube", 0, null, null);
     //cubeEnt.SetModel("models/srmod/cubecore.mdl");
@@ -428,7 +470,8 @@ FILTER_FIX_LIST <- {
     sp_a2_laser_vs_turret=[
         {clip="ratman_entry_clip"},
         {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clipOrigin=Vector(288,350,320)}
     ],
     sp_a2_bts4=[
         {origin=Vector(2958,-4928,6716.02)},
@@ -694,7 +737,8 @@ FILTER_FIX_LIST <- {
     sp_a2_pull_the_rug=[
         {clip="box_restarter",filter="box1_filter"},
         {clip="door_0-door_physics_clip",filter="door_0-weighted_cube_filter"},
-        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"}
+        {clip="@exit_door-door_physics_clip",filter="@exit_door-weighted_cube_filter"},
+        {clipOrigin=Vector(64,404,56)}
     ],
     sp_a3_bomb_flings=[
         {origin=Vector(128,-528,688)},
